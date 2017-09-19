@@ -1,4 +1,25 @@
-module Data.Map.Functional where
+module Data.Map.Functional
+  ( Map(..)
+  , fromTotal
+  , fromPartial
+  , empty
+  , singleton
+  , lookup
+  , member
+  , insert
+  , delete
+  , pop
+  , alter
+  , update
+  , fromFoldable
+  , fromFoldableWith
+  , union
+  , unionWith
+  , unions
+  , mapWithKey
+  , filter
+  , filterWithKey
+  ) where
 
 import Prelude
 
