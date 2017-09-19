@@ -1,11 +1,18 @@
 {
-  "name": "purescript-functional-strmaps",
+  "name": "purescript-functional-maps",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
     "output"
   ],
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "purescript-maybe": "^3.0.0",
+    "purescript-partial": "^1.2.1",
+    "purescript-tuples": "^4.1.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^3.0.0",
+    "purescript-console": "^3.0.0"
+  }
 }

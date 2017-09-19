@@ -1,6 +1,6 @@
 {
-  "name": "purescript-functional-strmaps",
-  "description": "purescript-functional-strmaps",
+  "name": "purescript-functional-maps",
+  "description": "purescript-functional-maps",
   "directories": {
     "test": "test"
   },
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Thimoteus/purescript-functional-strmaps.git"
+    "url": "git+https://github.com/Thimoteus/purescript-functional-maps.git"
   },
   "keywords": [
     "purescript"
@@ -20,9 +20,9 @@
   "author": "thimoteus",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Thimoteus/purescript-functional-strmaps/issues"
+    "url": "https://github.com/Thimoteus/purescript-functional-maps/issues"
   },
-  "homepage": "https://github.com/Thimoteus/purescript-functional-strmaps#readme",
+  "homepage": "https://github.com/Thimoteus/purescript-functional-maps#readme",
   "dependencies": {
     "purescript": "^0.11.6",
     "purescript-psa": "^0.5.1",
