@@ -2,104 +2,93 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, logShow, log)
-import Data.Map.Functional as Map
+import Data.Map as Map
+import Data.Map.Functional as FMap
 import Data.Maybe (Maybe(..))
-import Data.StrMap.Functional (StrMap)
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.StrMap as StrMap
+import Data.Tuple (Tuple(..))
+import Data.Unfoldable (unfoldr)
+import Benchmark as B
 
-type Test a = Eff (console :: CONSOLE) a
+type NMap = Map.Map String Int
 
-strMap1 :: StrMap Int
-strMap1 = Map.fromPartial f
-  where
-  f :: Partial => String -> Int
-  f "hello" = 5
+type SMap = StrMap.StrMap Int
 
-strMap2 :: StrMap String
-strMap2 = Map.fromTotal f
-  where
-  f "hello" = "hello"
-  f _ = ""
+type FMap = FMap.Map String Int
 
-strMap3 :: StrMap Boolean
-strMap3 = Map.empty # Map.insert "one" true # Map.insert "two" false
+assoclist :: Int -> Array (Tuple String Int)
+assoclist l = xs where
+  g n = Tuple (show n) n
+  f n | n <= l = Just (Tuple (g n) (n + 1))
+  f _ = Nothing
+  xs = unfoldr f 0
 
-partialTest :: Test Unit
-partialTest = do
-  log "Should print (Just 5)"
-  logShow $ Map.lookup "hello" strMap1
-  log "Should print Nothing"
-  logShow $ Map.lookup "hello again" strMap1
+nmap :: Int -> NMap
+nmap n = Map.fromFoldable $ assoclist n
 
-totalTest :: Test Unit
-totalTest = do
-  log "Should print (Just \"hello\")"
-  logShow $ Map.lookup "hello" strMap2
-  log "Should print (Just \"\")"
-  logShow $ Map.lookup "goodbye" strMap2
+smap :: Int -> SMap
+smap n = StrMap.fromFoldable $ assoclist n
 
-insertTest :: Test Unit
-insertTest = do
-  log "Should print Just values for true and false"
-  logShow $ Map.lookup "one" strMap3
-  logShow $ Map.lookup "two" strMap3
-  log "Should print Nothing"
-  logShow $ Map.lookup "three" strMap3
+fmap :: Int -> FMap
+fmap n = FMap.fromFoldable $ assoclist n
 
-deleteTest :: Test Unit
-deleteTest = do
-  log "Should print Nothing"
-  logShow $ Map.lookup "one" $ Map.delete "one" strMap3
+nmapfind :: Int -> NMap -> Maybe Int
+nmapfind i = Map.lookup (show i)
 
-popTest :: Test Unit
-popTest = do
-  let map' = Map.pop "one" strMap3
-      justOne = fst <$> map'
-      justMap = snd <$> map'
-      nothing = join $ Map.lookup "one" <$> justMap
-  log "Should print (Just true)"
-  logShow justOne
-  log "Should print Nothing"
-  logShow nothing
+smapfind :: Int -> SMap -> Maybe Int
+smapfind i = StrMap.lookup (show i)
 
-alterTest :: Test Unit
-alterTest = do
-  let alter1 (Just 1) = Just 0
-      alter1 (Just 2) = Nothing
-      alter1 _ = Just (-1)
-      mymap =
-        Map.singleton "zero" 0 # Map.insert "one" 1 # Map.insert "two" 2
-      mymap'
-        = mymap
-        # Map.alter alter1 "zero" -- blanket modify
-        # Map.alter alter1 "one" -- modify
-        # Map.alter alter1 "two" -- delete
-        # Map.alter alter1 "threeve" -- insert
-  log "Should print (Just 0)"
-  logShow $ Map.lookup "one" mymap'
-  log "Should print Nothing"
-  logShow $ Map.lookup "two" mymap'
-  log "Should print (Just (-1))"
-  logShow $ Map.lookup "zero" mymap'
-  log "Should print (Just (-1))"
-  logShow $ Map.lookup "threeve" mymap'
+fmapfind :: Int -> FMap -> Maybe Int
+fmapfind i = FMap.lookup (show i)
 
-fromFoldableTest :: Test Unit
-fromFoldableTest = do
-  let mymap = Map.fromFoldable [Tuple "one" 1, Tuple "zero" 0, Tuple "three" 3]
-  log "Should print (Just 0)"
-  logShow $ Map.lookup "zero" mymap
-  log "Should print Nothing"
-  logShow $ Map.lookup "threeve" mymap
+kill :: forall a. a -> Maybe a
+kill _ = Nothing
 
-main :: Test Unit
+nmapupdate :: Int -> NMap -> NMap
+nmapupdate n = Map.update kill (show n)
+
+smapupdate :: Int -> SMap -> SMap
+smapupdate n = StrMap.update kill (show n)
+
+fmapupdate :: Int -> FMap -> FMap
+fmapupdate n = FMap.update kill (show n)
+
+nmapunion :: Int -> NMap
+nmapunion n = Map.union (nmap n) (nmap n)
+
+smapunion :: Int -> SMap
+smapunion n = StrMap.union (smap n) (smap n)
+
+fmapunion :: Int -> FMap
+fmapunion n = FMap.union (fmap n) (fmap n)
+
+main :: forall e. B.ReportEff e Unit
 main = do
-  partialTest
-  totalTest
-  insertTest
-  deleteTest
-  popTest
-  alterTest
-  fromFoldableTest
+  B.report =<< B.benchmark "test" [ B.variant "nmap find 1000" (nmapfind 1000) (nmap 1000)
+                                  , B.variant "nmap find 5000" (nmapfind 5000) (nmap 5000)
+                                  , B.variant "nmap find 10000" (nmapfind 10000) (nmap 10000)
+                                  , B.variant "smap find 1000" (smapfind 1000) (smap 1000)
+                                  , B.variant "smap find 5000" (smapfind 5000) (smap 5000)
+                                  , B.variant "smap find 10000" (smapfind 10000) (smap 10000)
+                                  , B.variant "fmap find 1000" (fmapfind 1000) (fmap 1000)
+                                  , B.variant "fmap find 5000" (fmapfind 5000) (fmap 5000)
+                                  , B.variant "fmap find 10000" (fmapfind 10000) (fmap 10000)
+                                  , B.variant "nmap update 1000" (nmapupdate 1000) (nmap 1000)
+                                  , B.variant "nmap update 5000" (nmapupdate 5000) (nmap 5000)
+                                  , B.variant "nmap update 10000" (nmapupdate 10000) (nmap 10000)
+                                  , B.variant "smap update 1000" (smapupdate 1000) (smap 1000)
+                                  , B.variant "smap update 5000" (smapupdate 5000) (smap 5000)
+                                  , B.variant "smap update 10000" (smapupdate 10000) (smap 10000)
+                                  , B.variant "fmap update 1000" (fmapupdate 1000) (fmap 1000)
+                                  , B.variant "fmap update 5000" (fmapupdate 5000) (fmap 5000)
+                                  , B.variant "fmap update 10000" (fmapupdate 10000) (fmap 10000)
+                                  , B.variant "nmap union 1000" nmapunion 1000
+                                  , B.variant "nmap union 5000" nmapunion 5000
+                                  , B.variant "nmap union 10000" nmapunion 10000
+                                  , B.variant "smap union 1000" smapunion 1000
+                                  , B.variant "smap union 5000" smapunion 5000
+                                  , B.variant "smap union 10000" smapunion 10000
+                                  , B.variant "fmap union 1000" fmapunion 1000
+                                  , B.variant "fmap union 5000" fmapunion 5000
+                                  , B.variant "fmap union 10000" fmapunion 10000
+                                  ]

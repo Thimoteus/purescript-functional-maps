@@ -13,6 +13,8 @@
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0",
-    "purescript-console": "^3.0.0"
+    "purescript-console": "^3.0.0",
+    "purescript-benchmark": "jacereda/purescript-benchmark#^0.1.1",
+    "purescript-maps": "^3.5.2"
   }
 }
