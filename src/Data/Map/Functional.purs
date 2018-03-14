@@ -28,11 +28,15 @@ import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Monoid (class Monoid)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Tuple (Tuple(..))
+import Data.Profunctor (class Profunctor)
 import Partial.Unsafe (unsafePartial)
 
 newtype Map k v = Map (k -> Maybe v)
 
 derive instance newtypeMap :: Newtype (Map k v) _
+
+instance profunctorMap :: Profunctor Map where
+  dimap ab cd (Map bc) = Map \a -> cd <$> bc (ab a)
 
 instance functorMap :: Functor (Map k) where
   map :: ∀ a b. (a -> b) -> Map k a -> Map k b
